@@ -1,0 +1,45 @@
+const express = require("express");
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+// 👑 Admin credentials (hardcoded)
+const ADMIN = {
+    username: "admin",
+    password: "1234"
+};
+
+let posts = [];
+let isAdminLoggedIn = false;
+
+// 🔑 Admin login
+app.post("/login", (req, res) => {
+    const { username, password } = req.body;
+
+    if (username === ADMIN.username && password === ADMIN.password) {
+        isAdminLoggedIn = true;
+        return res.send("Admin login success");
+    }
+
+    res.send("Invalid credentials");
+});
+
+// 🚫 Only admin can add post
+app.post("/posts", (req, res) => {
+    if (!isAdminLoggedIn) {
+        return res.send("Only admin can post");
+    }
+
+    const { title, content } = req.body;
+    posts.push({ title, content });
+
+    res.send("Post added");
+});
+
+// 📖 Public posts (sab dekh sakte hain)
+app.get("/posts", (req, res) => {
+    res.json(posts);
+});
+
+app.listen(PORT, () => console.log("Server running on " + PORT));
