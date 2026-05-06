@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Blog</h1>
+
+<input id="email" placeholder="email">
+<input id="pass" placeholder="password">
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
+
+<hr>
+
+<input id="title" placeholder="title">
+<textarea id="content"></textarea>
+<button onclick="createPost()">Post</button>
+
+<div id="posts"></div>
+
+<script>
+let token="";
+
+function register(){
+fetch("/api/auth/register",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+email:email.value,
+password:pass.value
+})
+});
+}
+
+function login(){
+fetch("/api/auth/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+email:email.value,
+password:pass.value
+})
+}).then(r=>r.json()).then(d=>{
+token=d.token;
+load();
+});
+}
+
+function createPost(){
+fetch("/api/post/create",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+title:title.value,
+content:content.value
+})
+}).then(load);
+}
+
+function load(){
+fetch("/api/post").then(r=>r.json()).then(data=>{
+posts.innerHTML="";
+data.forEach(p=>{
+posts.innerHTML+=`
+<div>
+<h3>${p.title}</h3>
+<p>${p.content}</p>
+<button onclick="like('${p._id}')">❤️ ${p.likes}</button>
+<input id="c${p._id}">
+<button onclick="comment('${p._id}')">Comment</button>
+</div>`;
+});
+});
+}
+
+function like(id){
+fetch("/api/post/like/"+id,{method:"POST"}).then(load);
+}
+
+function comment(id){
+let t=document.getElementById("c"+id).value;
+fetch("/api/post/comment/"+id,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({text:t})
+}).then(load);
+}
+</script>
+
+</body>
+</html>
